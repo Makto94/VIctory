@@ -218,15 +218,15 @@ mod tests {
         for _ in 0..4 {
             let _ = wait(null, 0, 0, std::ptr::null(), TOKEN_ON_TIMEOUT, &mut token);
             // The tick due now; the wait computes its own a moment later.
-            let (due, _) = next_tick(FLIP);
             let asked = Instant::now();
+            let (due, _) = next_tick(FLIP);
             assert_eq!(
                 wait(null, FLIP, u32::MAX, std::ptr::null(), 0, &mut token),
                 S_OK
             );
             let flip = LAST[2].load(Ordering::Relaxed);
-            // At most the ticks that passed during the call (its sleep
-            // included) later than due.
+            // Count elapsed ticks from before the due sample through the
+            // wait, including any pause between them.
             let passed = (asked.elapsed().as_nanos() / INTERVAL.as_nanos()) as u64;
             assert!(
                 flip >= due && flip <= due + 1 + passed,
